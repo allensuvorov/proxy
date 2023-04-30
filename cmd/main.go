@@ -251,10 +251,10 @@ func main() {
 package main
 
 import (
-	"io"
 	"log"
 	"net"
 	"os"
+	"time"
 )
 
 func main() {
@@ -279,7 +279,15 @@ func main() {
 // }
 
 func copyToStderr(conn net.Conn) {
-	n, err := io.Copy(os.Stderr, conn)
-	log.Printf("Completed connection with n = %d, err = %v", n, err)
-
+	defer conn.Close()
+	for {
+		var buf [128]byte
+		conn.SetReadDeadline(time.Now().Add(5 * time.Second))
+		n, err := conn.Read(buf[:])
+		if err != nil {
+			log.Print(err)
+			return
+		}
+		os.Stderr.Write(buf[:n])
+	}
 }
