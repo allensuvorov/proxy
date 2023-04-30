@@ -1,3 +1,5 @@
+// Version 1
+/*
 package main
 
 import (
@@ -129,8 +131,8 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 	mutex.Lock()
 	requests[id] = &req
 	responses[id] = response
-	log.Println("requests:", requests)
-	log.Println("responses:", requests)
+	// log.Println("requests:", requests)
+	// log.Println("responses:", requests)
 	mutex.Unlock()
 
 	jsonResponse, err := json.Marshal(response)
@@ -146,4 +148,138 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 
 func generateID() string {
 	return fmt.Sprintf("%d", len(requests)+1)
+}
+*/
+
+// Version 2
+/*
+
+import "allen/jobsearch/companies/kmf/projects/proxy/internal/handler"
+
+func main() {
+	// handler
+	// service
+	// store
+	// client
+
+	// Passing requests from the handler to the client via channels can help to decouple the two components and make the code more modular and flexible.
+
+	// By using channels, the handler and client can communicate asynchronously and independently of each other. This can make it easier to handle multiple requests concurrently and can also make the code more fault-tolerant and resilient to errors.
+
+	// Using channels can also make it easier to add new features or modify existing ones. For example, if we wanted to add a caching layer to the client, we could do so without having to modify the handler code. We could simply modify the client code to check the cache before making a request and use a channel to communicate the result back to the handler.
+
+	// Overall, using channels to pass requests from the handler to the client can help to improve the modularity, flexibility, and scalability of the code.
+
+	reqChan := make(chan *handler.Request)
+	respChan := make(chan *handler.Response)
+
+	client := client.NewHTTPClient()
+	go handler.HandleRequests(client, reqChan, respChan)
+
+	// send requests
+	req1 := &handler.Request{
+		Method: "GET",
+		URL:    "https://example.com",
+		Headers: map[string]string{
+			"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3",
+		},
+	}
+	req2 := &handler.Request{
+		Method: "POST",
+		URL:    "https://example.com",
+		Headers: map[string]string{
+			"Content-Type": "application/json",
+		},
+	}
+	reqChan <- req1
+	reqChan <- req2
+
+	// receive responses
+	resp1 := <-respChan
+	resp2 := <-respChan
+
+	// handle responses
+	// ...
+}
+
+// In this example, the handler package defines the Request and Response types, as well as the Client interface and the HandleRequests function. The client package defines the HTTPClient type, which implements the Client interface. The main package creates the channels for passing requests and responses, creates an instance of the HTTPClient, and sends requests to the HandleRequests function via the reqChan channel. The responses are received via the respChan channel and can be handled as needed.
+
+// Algorythm:
+// 0. main composes object with
+// 1. Handler gets and saves the request and sends it to ch
+// 2. Client catches it from ch and makes request, sends response back via ch
+// 3. Handler catches the response from ch and makes response
+
+// instead of each handler calling client and back.
+
+// all handlers write to map and send to -> chan
+// chan -> client reads from chan (worker pool) runs them
+// handlers need to read chan by and select by ID
+
+//						  store
+//							^
+// handler ->	  			|
+// handler -> 		services - > agent
+// handler ->
+
+// Direct
+
+// handler <-> agent
+// handler <-> agent
+// handler <-> agent
+
+// Via channel
+
+// handler -> |---------------|
+// handler -> | req, req, req | - agent
+// handler -> |_______________|
+
+// TODO
+// - explain use channels to
+
+// caching
+// Let's say, if the same request comes: -r-r-r-r-
+// We can store it in a map [req] res
+// We can read from that map using mutex
+
+// throttling
+// If 1000 request per second to same server:
+//
+*/
+
+// main package
+package main
+
+import (
+	"io"
+	"log"
+	"net"
+	"os"
+)
+
+func main() {
+	l, err := net.Listen("tcp", "localhost:8080")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for {
+		conn, err := l.Accept()
+		if err != nil { // actually need to check if it's a temporary error
+			log.Fatal(err)
+		}
+
+		go copyToStderr(conn)
+
+	}
+}
+
+// func proxy(conn net.Conn) {
+
+// }
+
+func copyToStderr(conn net.Conn) {
+	n, err := io.Copy(os.Stderr, conn)
+	log.Printf("Completed connection with n = %d, err = %v", n, err)
+
 }
