@@ -1,6 +1,7 @@
-// Version 1
-/*
 package main
+
+// Version 1
+///*
 
 import (
 	"encoding/json"
@@ -149,7 +150,8 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 func generateID() string {
 	return fmt.Sprintf("%d", len(requests)+1)
 }
-*/
+
+// */
 
 // Version 2
 /*
@@ -247,14 +249,12 @@ func main() {
 //
 */
 
-// main package
-package main
+/*
 
 import (
+	"io"
 	"log"
 	"net"
-	"os"
-	"time"
 )
 
 func main() {
@@ -268,26 +268,42 @@ func main() {
 		if err != nil { // actually need to check if it's a temporary error
 			log.Fatal(err)
 		}
-
-		go copyToStderr(conn)
-
+		go proxy(conn)
 	}
 }
 
-// func proxy(conn net.Conn) {
+func proxy(conn net.Conn) {
+	log.Println("proxy - start")
+	defer conn.Close()
 
+	upstream, err := net.Dial("tcp", "google.com:80")
+	if err != nil {
+		log.Print(err)
+		return
+	}
+	defer upstream.Close()
+
+	go io.Copy(upstream, conn)
+	io.Copy(conn, upstream) // once this returns an error it will hit the defer and that will bring down the goroutine
+
+	// log.Println("conn after:", conn)
+	log.Println("proxy - end")
+}
+
+// get the response
+
+// func copyToStderr(conn net.Conn) {
+// 	defer conn.Close()
+// 	for {
+// 		var buf [128]byte
+// 		conn.SetReadDeadline(time.Now().Add(5 * time.Second))
+// 		n, err := conn.Read(buf[:])
+// 		if err != nil {
+// 			log.Print(err)
+// 			return
+// 		}
+// 		os.Stderr.Write(buf[:n])
+// 	}
 // }
 
-func copyToStderr(conn net.Conn) {
-	defer conn.Close()
-	for {
-		var buf [128]byte
-		conn.SetReadDeadline(time.Now().Add(5 * time.Second))
-		n, err := conn.Read(buf[:])
-		if err != nil {
-			log.Print(err)
-			return
-		}
-		os.Stderr.Write(buf[:n])
-	}
-}
+*/
