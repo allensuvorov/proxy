@@ -31,14 +31,13 @@ var (
 
 func main() {
 	srv := &http.Server{
-		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 10 * time.Second,
+		ReadTimeout:  1 * time.Second,
+		WriteTimeout: 2 * time.Second,
 	}
 	http.HandleFunc("/", handleRequest)
 	srv.Addr = ":8080"
 	log.Println("Serving on port", srv.Addr)
 	log.Fatal(srv.ListenAndServe())
-
 }
 
 func handleRequest(w http.ResponseWriter, r *http.Request) {
