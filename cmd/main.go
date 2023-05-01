@@ -37,6 +37,8 @@ func main() {
 
 // TODO
 // DONE - caching in the map
+// - can we move caching to a seperate func?
+// - but can we move reqRes so it's not a gloval var?
 // - decouple handler and client, put into separate functions - can test
 // - context
 // - timeouts (as of now open connections stay open forever)
@@ -62,10 +64,14 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// DIY caching
-	if _, ok := reqRes[string(body)]; ok {
+	mutex.Lock()
+	cachedResponce, ok := reqRes[string(body)]
+	mutex.Unlock()
+
+	if ok {
 		log.Println("request already exists")
 
-		jsonResponse, err := json.Marshal(reqRes[string(body)])
+		jsonResponse, err := json.Marshal(cachedResponce)
 		if err != nil {
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			return
