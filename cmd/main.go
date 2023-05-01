@@ -35,14 +35,6 @@ func main() {
 	log.Fatal(http.ListenAndServe(serverAddress, nil))
 }
 
-// TODO
-// DONE - caching in the map
-// - can we move caching to a seperate func?
-// - but can we move reqRes so it's not a gloval var?
-// - decouple handler and client, put into separate functions - can test
-// - context
-// - timeouts (as of now open connections stay open forever)
-
 func handleRequest(w http.ResponseWriter, r *http.Request) {
 	log.Println("handleRequest - start")
 	if r.Method != "POST" {
@@ -87,12 +79,6 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// if response body not needed, use HEAD instead of GET
-	// if req.Method == http.MethodGet {
-	// 	req.Method = http.MethodHead
-	// 	log.Println("If body not needed, use HEAD instead of GET!", req.Method)
-	// }
-
 	proxyReq, err := http.NewRequest(req.Method, reqURL.String(), nil)
 	if err != nil {
 		http.Error(w, "Bad request", http.StatusBadRequest)
@@ -111,12 +97,6 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	defer resp.Body.Close()
-
-	// TODO: pick to log resp.Body or copy to oblivian
-	// _, err = io.Copy(io.Discard, resp.Body)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// }
 
 	respBody, err := io.ReadAll(resp.Body)
 
