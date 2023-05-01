@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"sync"
+	"time"
 )
 
 type Request struct {
@@ -29,10 +30,15 @@ var (
 )
 
 func main() {
+	srv := &http.Server{
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+	}
 	http.HandleFunc("/", handleRequest)
-	serverAddress := ":8080"
-	log.Println("Serving on port", serverAddress)
-	log.Fatal(http.ListenAndServe(serverAddress, nil))
+	srv.Addr = ":8080"
+	log.Println("Serving on port", srv.Addr)
+	log.Fatal(srv.ListenAndServe())
+
 }
 
 func handleRequest(w http.ResponseWriter, r *http.Request) {
