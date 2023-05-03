@@ -25,25 +25,3 @@ EXPOSE 8080
 
 # Run
 CMD ["/docker-proxy"]
-
-
-
-
-
-
-# FROM golang:1.20.3 AS builder
-
-# WORKDIR /build
-
-# COPY main.go .
-# COPY go.mod .
-
-# ENV CGO_ENABLED=0
-
-# RUN go build -o proxy main.go
-
-# FROM scratch
-
-# COPY --from=builder /build/proxy /
-
-# ENTRYPOINT [ "proxy" ]
